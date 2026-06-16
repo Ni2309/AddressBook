@@ -1,27 +1,50 @@
 pipeline {
-    agent any
+    agnent any
+    tools {
+        maven 'Maven3'
+    }
 
-    stages{
-        stage('Checkout') {
-            step{
-		checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Ni2309/AddressBook.git']])
-                echo ("Checking out source code from GitHub")
+    stages {
+        stage('CheckOut'){
+            steps {
+                echo 'Checking out the code from GitHub'
+                checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Ni2309/AddressBook.git']])
             }
         }
+        
+        stage('Install') {
+            steps {
+                echo 'Installing dependencies using Maven'
+                sh 'mvn clean'
+            }
+        }
+
         stage('Build') {
-            step{
-                sh 'mvn clean package'
+            steps {
+                echo 'Building the project using Maven'
+                sh 'mvn compile'
             }
         }
+
         stage('Test') {
-            step{
+            steps {
+                echo 'Running tests using Maven'
                 sh 'mvn test'
             }
         }
-        stage('Deploy') {
-            step{
-                echo 'Deploying application to production environment'
+
+        stage('Package') {
+            steps {
+                echo 'Packaging the project using Maven'
+                sh 'mvn package'
             }
-        }           
+        }
+        
+        stage('Archive') {
+            steps {
+                echo 'Archiving the built artifact'
+                archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+            }
+        }
     }
 }
