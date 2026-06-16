@@ -1,48 +1,43 @@
 pipeline {
     agent any
+
     tools {
-        maven 'Maven3'
+        maven 'Maven3'   // Must match Jenkins Tools name exactly
     }
 
     stages {
-        stage('CheckOut'){
+
+        stage('Prepare Workspace') {
             steps {
-                echo 'Checking out the code from GitHub'
-                checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Ni2309/AddressBook.git']])
+                echo 'Cleaning workspace to avoid old target issues'
+                cleanWs()
             }
         }
-        
-        stage('Install') {
+
+        stage('Checkout') {
             steps {
-                echo 'Installing dependencies using Maven'
-                sh 'mvn clean'
+                echo 'Cloning source code from GitHub'
+                checkout scm
             }
         }
 
         stage('Build') {
             steps {
-                echo 'Building the project using Maven'
-                sh 'mvn compile'
+                echo 'Building project using Maven'
+                sh 'mvn clean package -DskipTests'
             }
         }
 
         stage('Test') {
             steps {
-                echo 'Running tests using Maven'
+                echo 'Running tests'
                 sh 'mvn test'
             }
         }
 
-        stage('Package') {
-            steps {
-                echo 'Packaging the project using Maven'
-                sh 'mvn package'
-            }
-        }
-        
         stage('Check Artifact') {
             steps {
-                echo 'Checking generated files in target folder'
+                echo 'Checking target folder content'
                 sh 'ls -la target || true'
                 sh 'find target -name "*.jar" || true'
             }
@@ -50,9 +45,28 @@ pipeline {
 
         stage('Archive') {
             steps {
-                echo 'Archiving the built artifact'
+                echo 'Archiving JAR file'
                 archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
             }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deploy stage (add EC2/Docker deploy here)'
+            }
+        }
+
+    }
+
+    post {
+        always {
+            echo 'Pipeline finished'
+        }
+        success {
+            echo 'Build SUCCESS'
+        }
+        failure {
+            echo 'Build FAILED'
         }
     }
 }
