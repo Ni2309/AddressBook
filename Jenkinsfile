@@ -4,6 +4,7 @@ pipeline {
     stages{
         stage('Checkout') {
             step{
+		checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Ni2309/AddressBook.git']])
                 echo ("Checking out source code from GitHub")
             }
         }
