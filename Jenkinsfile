@@ -40,10 +40,18 @@ pipeline {
             }
         }
         
+        stage('Check Artifact') {
+            steps {
+                echo 'Checking generated files in target folder'
+                sh 'ls -la target || true'
+                sh 'find target -name "*.jar" || true'
+            }
+        }
+
         stage('Archive') {
             steps {
                 echo 'Archiving the built artifact'
-                archiveArtifacts artifacts: '**/target/appfile.jar', fingerprint: true
+                archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
             }
         }
     }
